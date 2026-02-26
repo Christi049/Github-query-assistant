@@ -1,6 +1,5 @@
-data/repo
 venv/
 __pycache__/
 .env
-data/repo/
+*.pyc
 backend/qdrant_storage/

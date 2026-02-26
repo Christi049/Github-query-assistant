@@ -1,27 +1,30 @@
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams, PointStruct
 from backend.embeddings import embed_query
+import os
 import uuid
 
-COLLECTION_NAME = "code_chunks"
 
 # persistent local database
-client = QdrantClient(path="backend/qdrant_storage")
-
+client = QdrantClient(
+    url=os.getenv("QDRANT_URL"),
+    api_key=os.getenv("QDRANT_API_KEY"),
+)
 
 # ---------- Create DB ----------
-def create_collection():
+def create_collection(collection_name):
     collections = [c.name for c in client.get_collections().collections]
 
-    if COLLECTION_NAME not in collections:
-        client.create_collection(
-            collection_name=COLLECTION_NAME,
-            vectors_config=VectorParams(size=384, distance=Distance.COSINE),
-        )
+    if collection_name in collections:
+        client.delete_collection(collection_name=collection_name)
 
+    client.create_collection(
+        collection_name=collection_name,
+        vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+    )
 
 # ---------- Store ----------
-def store_chunks(chunks):
+def store_chunks(chunks, collection_name):
     """
     Expects chunks ALREADY containing embeddings
     (embedding created in embeddings.py)
@@ -33,7 +36,7 @@ def store_chunks(chunks):
         points.append(
             PointStruct(
                 id=str(uuid.uuid4()),
-                vector=chunk["embedding"],  # <-- IMPORTANT: no encoding here
+                vector=chunk["embedding"],
                 payload={
                     "content": chunk["content"],
                     "file_path": chunk["file_path"],
@@ -43,20 +46,19 @@ def store_chunks(chunks):
             )
         )
 
-    client.upsert(collection_name=COLLECTION_NAME, points=points)
+    client.upsert(collection_name=collection_name, points=points)
 
 
 # ---------- Search ----------
-def search(question, k=3):
-    """
-    Expects already embedded query vector
-    """
+def search(question, collection_name, k=3):
+
     query_vector = embed_query(question)
 
     results = client.query_points(
-        collection_name=COLLECTION_NAME,
+        collection_name=collection_name,
         query=query_vector,
         limit=k,
     )
 
     return [hit.payload for hit in results.points]
+

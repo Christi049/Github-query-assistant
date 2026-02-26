@@ -1,16 +1,12 @@
-import os
+#handle conflicts -in case multiple users are using app at the same time
+import tempfile
 from git import Repo
 
-def clone_repo(repo_url, local_path="data/repo"):
-    """
-    Clones a GitHub repository to a local directory.
-    If the repository already exists, it will not clone again.
-    """
-    if os.path.exists(local_path):
-        print("Repository already exists. Skipping clone.")
-        return local_path
+def clone_repo(repo_url):
+    temp_dir = tempfile.mkdtemp()
+    Repo.clone_from(repo_url, temp_dir)
 
-    os.makedirs(local_path, exist_ok=True)
-    Repo.clone_from(repo_url, local_path)
+    # extract repo name
+    repo_name = repo_url.rstrip("/").split("/")[-1]
 
-    return local_path
+    return temp_dir, repo_name

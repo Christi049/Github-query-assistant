@@ -1,37 +1,63 @@
 import streamlit as st
+from backend.repo_loader import clone_repo
+from backend.index_repo import index_repository
 from backend.vector_store import search
 from backend.llm_explainer import explain_code
 
-st.set_page_config(page_title="GitHub Repo Assistant", layout="wide")
-st.title("🧠 GitHub Repository Intelligent Query System")
+st.title("GitHub Query Assistant")
 
-# store chat
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# -----------------------
+# Session State
+# -----------------------
 
-# display old messages
-for role, content in st.session_state.messages:
-    with st.chat_message(role):
-        st.markdown(content)
+if "collection_name" not in st.session_state:
+    st.session_state.collection_name = None
 
-# input
-question = st.chat_input("Ask a question about the repository...")
 
-if question:
-    # show user
-    st.session_state.messages.append(("user", question))
-    with st.chat_message("user"):
-        st.markdown(question)
+# -----------------------
+# Repository Input
+# -----------------------
 
-    # retrieve
-    with st.spinner("Finding relevant code..."):
-        chunks = search(question, k=3)
+repo_url = st.text_input("Enter GitHub Repository URL")
 
-    # generate answer (YOUR LLM)
-    with st.spinner("Generating explanation..."):
-        answer = explain_code(question, chunks)
+if st.button("Clone and Index"):
 
-    # show assistant
-    st.session_state.messages.append(("assistant", answer))
-    with st.chat_message("assistant"):
-        st.markdown(answer)
+    if repo_url:
+        with st.spinner("Cloning repository..."):
+            repo_path, repo_name = clone_repo(repo_url)
+
+        with st.spinner("Indexing repository..."):
+            index_repository(repo_path, repo_name)
+
+        # Save collection name in session
+        st.session_state.collection_name = repo_name
+
+        st.success(f"Repository '{repo_name}' indexed successfully!")
+    else:
+        st.error("Please enter a valid repository URL.")
+
+
+# -----------------------
+# Question Section
+# -----------------------
+
+question = st.text_input("Ask a question about the repository")
+
+if st.button("Ask Question"):
+
+    if not st.session_state.collection_name:
+        st.error("Please index a repository first.")
+    elif question:
+        with st.spinner("Retrieving relevant code..."):
+            retrieved_chunks = search(
+                question,
+                st.session_state.collection_name
+            )
+
+        with st.spinner("Generating answer..."):
+            answer = explain_code(question, retrieved_chunks)
+
+        st.markdown("### Answer")
+        st.write(answer)
+    else:
+        st.error("Please enter a question.")
