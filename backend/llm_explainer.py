@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("OPENROUTER_API_KEY")
+API_KEY = os.getenv("MISTRAL_API_KEY")
 
 
 def explain_code(question, retrieved_chunks):
@@ -45,19 +45,23 @@ Question:
 {question}
 
 Answer (bullet points only):
+
+
 """
 
     try:
         response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
+            "https://api.mistral.ai/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {API_KEY}",
                 "Content-Type": "application/json"
             },
             json={
-                "model": "mistralai/mistral-7b-instruct",
+                "model": "mistral-small-latest",
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.2  # lower = less rambling
+                "temperature": 0.0,
+                "top_p": 1.0,
+                "max_tokens": 350  # lower = less rambling
             },
             timeout=120
         )
@@ -67,7 +71,7 @@ Answer (bullet points only):
         if "choices" not in data:
             return f"Error from LLM: {data}"
 
-        return data["choices"][0]["message"]["content"]
+        return data["choices"][0]["message"]["content"].strip()
 
     except Exception as e:
         return f"Error contacting LLM: {str(e)}"
