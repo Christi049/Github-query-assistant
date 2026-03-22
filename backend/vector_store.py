@@ -3,13 +3,11 @@ from qdrant_client.http.models import Distance, VectorParams, PointStruct
 from backend.embeddings import embed_query
 import os
 import uuid
-from dotenv import load_dotenv
-
-load_dotenv()
+import streamlit as st
 
 client = QdrantClient(
-    url=os.getenv("QDRANT_URL"),
-    api_key=os.getenv("QDRANT_API_KEY"),
+    url=st.secrets["QDRANT_URL"],
+    api_key=st.secrets["QDRANT_API_KEY"],
     https=True,
 )
 
