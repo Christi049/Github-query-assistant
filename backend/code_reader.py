@@ -1,7 +1,7 @@
 #to extract required files from cloned repo 
 import os
 
-SUPPORTED_EXTENSIONS = [".py", ".js", ".ts", ".java", ".cpp", ".c", ".html", ".css"]
+SUPPORTED_EXTENSIONS = [".py", ".js", ".ts", ".java", ".cpp", ".c", ".html", ".css", ".jsx"]
 
 def read_repository(repo_path):
     documents = []
