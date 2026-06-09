@@ -1,5 +1,3 @@
-## Deployed application : [GitHub Query Assistant](https://query-assistant-app.streamlit.app/) 
-
 # GitHub Query Assistant
 
 GitHub Query Assistant is an AI-powered repository analysis system that enables users to query GitHub repositories using natural language. The system processes source code repositories, generates semantic embeddings for code chunks, stores them in a vector database, and retrieves relevant context to generate accurate explanations using Large Language Models (LLMs).
