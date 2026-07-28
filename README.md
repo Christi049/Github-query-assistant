@@ -201,5 +201,4 @@ The application is deployed using Streamlit Cloud.
 - AST-based code analysis
 - Hybrid retrieval methods
 - Support for private repositories
-- Repository summarization
 
